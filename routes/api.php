@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdmissionController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\RegisterController;
 use Illuminate\Http\Request;
@@ -20,9 +21,17 @@ use Illuminate\Support\Facades\DB;
 Route::post('register', [RegisterController::class, 'register']);
 Route::post('login', [RegisterController::class, 'login']);
 
+Route::controller(AdmissionController::class)->group(function () {
+    Route::post('/add/admission', 'store');
+    Route::get('/get/admission/{id?}', 'index');
+});
+
 
 Route::controller(DoctorController::class)->middleware('auth:sanctum')->group(function () {
     Route::get('personal/appointment/{id}', 'personal_appointment');
+    Route::post('/add/tele/medicine', 'tele_medicines');
+    Route::post('/add/visa/precessing', 'add_visa_processing')->name('get.visa');
+    Route::post('/add/order/medicine', 'order_medicine');
 });
 Route::controller(DoctorController::class)->group(function () {
     // 1. specialty
@@ -73,12 +82,10 @@ Route::controller(DoctorController::class)->group(function () {
 
     // 10. order medicine
     Route::get('/get/order/medicine/{id?}', 'get_order_medicine')->name('get.order_medicine');
-    Route::post('/add/order/medicine', 'order_medicine');
 
     // 11. tele medicine
     Route::get('/get/tele/medicine/{id?}', 'get_tele_medicine')->name('get.tele_medicine');
-    Route::post('/add/tele/medicine', 'tele_medicines');
-    
+
     // 12. medical Report
     Route::get('/get/medical/report/{id?}', 'get_medical_report')->name('get.medical_record');
     Route::post('/add/medical/report', 'medical_report');
@@ -106,9 +113,8 @@ Route::controller(DoctorController::class)->group(function () {
     Route::get('appointment/success/{id}', 'appointment_success');
     
     // 18. visa processing
-    Route::post('/add/visa/precessing', 'add_visa_processing')->name('get.visa');
     Route::get('/get/visa/precessing/{id?}', 'get_visa_processing');
-    
+
     // 19. news
     Route::post('/add/news', 'add_news');
     Route::get('/get/news/{id?}', 'get_news');

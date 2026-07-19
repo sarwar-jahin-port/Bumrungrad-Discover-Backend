@@ -10,6 +10,8 @@ class AirTicket extends Model
     use HasFactory;
 
     protected $fillable = [
+        'fullName',
+        'whatsapp',
         'booking_date',
         'country',
         'doc',

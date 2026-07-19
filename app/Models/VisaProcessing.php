@@ -10,6 +10,8 @@ class VisaProcessing extends Model
     use HasFactory;
 
     protected $fillable = [
+        'fullName',
+        'whatsapp',
         'oldPataint',
         'HnNumber',
         'PataientFirstName',

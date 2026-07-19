@@ -610,26 +610,9 @@ class DoctorController extends Controller
     }
 
     // 17. air ticket
-    public function air_ticket(Request $request)
+    public function air_ticket(\App\Http\Requests\AirTicketRequest $request)
     {
-        $validation = Validator::make($request->all(), [
-            'booking_date' => 'required',
-        ]);
-        if ($validation->fails()) {
-            $data = ['status' => 404, 'mgs' => 'Validation error.', $validation->errors()];
-            return response()->json($data);
-        }
-
-        $path = public_path('assets/docs/air_ticket/');
-        $doc = $this->upload_file($request, $path, 'doc');
-
-        $data['booking_date'] = $request->booking_date;
-        $data['country'] = $request->country;
-        $data['doc'] = $doc;
-        $data['destination'] = $request->destination;
-        $data['return_date'] = $request->return_date;
-
-        AirTicket::insert($data);
+        AirTicket::create($request->validated());
 
         $res = ['status' => 200, 'msg' => 'Ticket created.'];
         return response()->json($res);
@@ -736,39 +719,9 @@ class DoctorController extends Controller
     }
 
     // 23. order medicine
-    public function order_medicine(Request $request)
+    public function order_medicine(\App\Http\Requests\OrderMedicineRequest $request)
     {
-        $data = $request->all();
-        $medicines = json_decode($request->medicines);
-        $medicine = $quantity = [];
-        for ($i = 0; $i < count($medicines); $i++) {
-            for ($j = 0; $j < count($medicines[$i]); $j++) {
-
-                if ($j % 2 == 0) {
-                    array_push($medicine, $medicines[$i][$j]);
-                } else {
-                    array_push($quantity, $medicines[$i][$j]);
-                }
-            }
-        }
-
-        $modify = [
-            'medicines' => $medicine,
-            'quantity' => $quantity,
-        ];
-
-        $json =  $this->makeJson($modify);
-
-        $path = 'assets/docs/order_medicine/';
-        $prescription = $this->upload_file($request, $path, 'prescription');
-
-        $data['medicines'] = $json['medicines'];
-        $data['prescription'] = $prescription;
-        $data['quantity'] = $json['quantity'];
-        
-        
-
-        OrderMedicine::insert($data);
+        OrderMedicine::create($request->validated());
 
         $res = ['status' => 200, 'msg' => 'Order medicine created.'];
         return response()->json($res);
@@ -809,15 +762,11 @@ class DoctorController extends Controller
     }
 
     // 25. tele medicines
-    public function tele_medicines(Request $request)
+    public function tele_medicines(\App\Http\Requests\TeleMedicineRequest $request)
     {
-        $path = 'assets/docs/tele_medicine/';
-        $investigationDocument = $this->upload_file($request, $path, 'investigationDocument');
+        $data = $request->validated();
 
-        $data = $request->all();
-        $data['investigationDocument'] = $investigationDocument;
-
-        TeleMedicine::insert($data);
+        TeleMedicine::create($data);
         $res = ['status' => 200, 'msg' => 'Tele medicine created.'];
         return response()->json($res);
     }
@@ -1119,22 +1068,9 @@ class DoctorController extends Controller
     }
     
     // 43. visa processing
-    public function add_visa_processing(Request $request)
+    public function add_visa_processing(\App\Http\Requests\VisaProcessingRequest $request)
     {
-        $path = 'assets/docs/visa_processing/';
-        $passport = $this->upload_file($request, $path, 'passport');
-        $medicalReport1 = $this->upload_file($request, $path, 'medicalReport1');
-        $medicalReport2 = $this->upload_file($request, $path, 'medicalReport2');
-        $invitationLetter = $this->upload_file($request, $path, 'invitationLetter');
-        
-        
-        $data = $request->all();
-        $data['passport'] = $passport;
-        $data['medicalReport1'] = $medicalReport1;
-        $data['medicalReport2'] = $medicalReport2;
-        $data['invitationLetter'] = $invitationLetter;
-
-        VisaProcessing::insert($data);
+        VisaProcessing::create($request->validated());
         $res = ['status' => 200, 'msg' => 'Visa processing added.'];
         return response()->json($res);
     }

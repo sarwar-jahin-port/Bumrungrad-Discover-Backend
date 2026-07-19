@@ -5,17 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class OrderMedicine extends Model
+class Admission extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'phoneNumber',
-        'prescription',
-        'medicines',
-        'quantity',
-        'created_at',
-        'updated_at',
+        'fullName',
+        'whatsapp',
+        'case_summary',
+        'date',
+        'passport',
+        'message',
     ];
 }

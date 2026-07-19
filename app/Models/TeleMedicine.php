@@ -11,6 +11,7 @@ class TeleMedicine extends Model
 
     protected $fillable = [
         'fullName',
+        'patientType',
         'hnNum',
         'birthDate',
         'passportId',
@@ -18,6 +19,7 @@ class TeleMedicine extends Model
         'residence',
         'preferredDate',
         'preferredDoctor',
+        'timeSlot',
         'purposeAppointment',
         'investigationDocument',
         'contactDetails',
