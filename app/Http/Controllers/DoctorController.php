@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\HandlesFileUploads;
-use App\Http\Requests\PackageRequest;
-use App\Http\Requests\SubPackageRequest;
 use App\Models\Center;
 use App\Models\News;
 use App\Models\Blogs;
@@ -13,7 +11,6 @@ use App\Models\User;
 use App\Models\HealthCheckUp;
 use App\Models\Doctor;
 use App\Models\Package;
-use App\Models\SubPackage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -40,145 +37,7 @@ class DoctorController extends Controller
     /*--------------------------------------------------------------------------------------------------*/
     // 1-9. specialty, sub specialty, doctors: moved to SpecialtyController / DoctorProfileController.
 
-    // 10. create new parent package
-    public function create_package(PackageRequest $request)
-    {
-        $path = 'assets/images/packages/';
-        $image = $this->upload_file($request, $path, 'cover_photo');
-
-        // insert new package
-        $data = [
-            'title' => $request->title,
-            'cover_photo' => $image,
-            'description' => $request->description,
-        ];
-        $add = Package::insert($data);
-        if ($add) {
-            return response()->json(['msg' => 'Package added.']);
-        }
-    }
-    
-    public function update_package(Request $request, $id)
-    {
-        if($request->cover_photo){
-            $path = 'assets/images/packages/';
-            $image = $this->upload_file($request, $path, 'cover_photo');
-            $data['cover_photo'] = $image;
-        }
-
-        // update package
-        $data['title'] = $request->title;
-        $data['description'] = $request->description;
-        
-        $update = Package::where('id', $id)->update($data);
-        if ($update) {
-            return response()->json(['msg' => 'Package updated.']);
-        }
-    }
-
-    // 11. get all parent packages
-    public function get_packages($slug = '', $id='')
-    {
-        if ($id != '') {
-            $package = Package::where('id', $id)->first(); 
-            if ($package) {
-                $data = ['status' => 200, 'data' => $package];
-            }
-        } else {
-            $package = Package::get();
-            if ($package->count() > 0) {
-                $package->each(function ($item) {
-                    $item->slug = Str::slug($item->title);
-                });
-                $data = ['status' => 200, 'data' => $package];
-            }
-        }
-
-        if (isset($data)) {
-            return response()->json($data);
-        } else {
-            return response()->json(['status' => 404, 'msg' => 'Data not found.']);
-        }
-    }
-
-    // 12. create sub packages
-    public function create_sub_package(Request $request)
-    {
-        $path = 'assets/images/sub_packages/';
-        $image = $this->upload_file($request, $path, 'cover_photo');
-        
-        // insert new package
-        $data = $request->all();
-        $data['cover_photo'] = $image;
-        
-        
-        // return response()->json(['test' => $data]);
-        SubPackage::insert($data);
-        return response()->json(['status' => 200, 'msg' => "Child package added."]);
-    
-        
-    }
-    public function update_sub_package(Request $request, $id)
-    {
-        if($request->cover_photo){
-            $path = 'assets/images/sub_packages/';
-            $image = $this->upload_file($request, $path, 'cover_photo');
-            $data['cover_photo'] = $image;
-        }
-        
-        // insert new package
-        $data = $request->all();
-        unset($data['cover_photo']);
-        
-        
-        SubPackage::where('id', $id)->update($data);
-        return response()->json(['status' => 200, 'msg' => "Child package updated."]);
-    }
-
-    // 13. get sub packages
-    public function get_sub_package($slug = '', $id = '')
-    {
-        if ($id != '') {
-            $sub_package = SubPackage::where('id', $id)->first();
-            if ($sub_package) {
-                $sub_package->conditions = json_decode($sub_package->conditions);
-                $sub_package->inclusions = json_decode($sub_package->inclusions);
-                $sub_package->exclusions = json_decode($sub_package->exclusions);
-                $data = ['status' => 200, 'data' => $sub_package];
-            }
-        } else {
-            $sub_package = SubPackage::get();
-
-            if ($sub_package->count() > 0) {
-                $sub_package->each(function ($item) {
-                    $item->slug = Str::slug($item->title);
-                    $item->conditions = json_decode($item->conditions);
-                    $item->inclusions = json_decode($item->inclusions);
-                    $item->exclusions = json_decode($item->exclusions);
-                });
-                $data = ['status' => 200, 'data' => $sub_package];
-            }
-        }
-
-        if (isset($data)) {
-            return response()->json($data);
-        } else {
-            return response()->json(['status' => 404, 'msg' => 'Data not found.']);
-        }
-    }
-
-    // 14. sub package by id
-    public function sub_package_details($id)
-    {
-        $sub_package = SubPackage::where('id', $id)->first();
-        if ($sub_package != '') {
-            $data = ['status' => '200', 'data' => $sub_package];
-        } else {
-            $data = ['status' => '404', 'msg' => 'Data not found.'];
-        }
-
-        return response()->json($data);
-    }
+    // 10-14. packages, sub packages: moved to PackageController.
 
     // 15-16. add/update/get clinics: moved to CenterController.
 
@@ -252,44 +111,7 @@ class DoctorController extends Controller
         }
     }
 
-    // 21. air ambulance
-    public function air_ambulance(Request $request)
-    {
-        $path = 'assets/docs/air_ambulance/';
-        $passport_copy = $this->upload_file($request, $path, 'passport_copy');
-
-        $data['entry_date'] = $request->entry_date;
-        $data['passport_copy'] = $passport_copy;
-        $data['summary'] = $request->summary;
-        $data['description'] = $request->description;
-
-        AirAmbulance::insert($data);
-
-        $res = ['status' => 200, 'msg' => 'Air ambulance created.'];
-        return response()->json($res);
-    }
-
-    // 22. get all air ambulance
-    public function get_air_ambulance($id = '')
-    {
-        if ($id != '') {
-            $air_ambulance = AirAmbulance::where('id', $id)->first();
-            if ($air_ambulance) {
-                $data = ['status' => 200, 'data' => $air_ambulance];
-            }
-        } else {
-            $air_ambulance = AirAmbulance::get();
-            if ($air_ambulance->count() > 0) {
-                $data = ['status' => 200, 'data' => $air_ambulance];
-            }
-        }
-
-        if (isset($data)) {
-            return response()->json($data);
-        } else {
-            return response()->json(['status' => 404, 'msg' => 'Data not found.']);
-        }
-    }
+    // 21-22. air ambulance: moved to AirAmbulanceController.
 
     // 23. order medicine
     public function order_medicine(\App\Http\Requests\OrderMedicineRequest $request)
@@ -478,25 +300,8 @@ class DoctorController extends Controller
         }
     }
     
-    // 33. get child package by parent
-    public function get_sub_packages ($slug, $id)
-    {
-        $data = ['status' => 404, 'msg' => 'Data not found'];
-        if($id != '' && $id > 0){
-            $sub_package = SubPackage::where('parent_id', $id)->get();
-            if($sub_package->count() > 0){
-                $sub_package->each(function ($item){
-                    $item->slug = Str::slug($item->title);
-                    $item->conditions = array_values((array) json_decode($item->conditions));
-                    $item->exclusions = array_values((array) json_decode($item->exclusions));
-                    $item->inclusions = array_values((array) json_decode($item->inclusions));
-                });
-                $data = ['status' => 200, 'data' => $sub_package];
-            }
-        }
-        return response()->json($data);
-    }
-    
+    // 33. get child package by parent: moved to PackageController::subByParent.
+
     // 34. delete record
     public function delete_record($param, $id)
     {
@@ -765,19 +570,8 @@ class DoctorController extends Controller
         ];
     }
     
-    // 50. search package by name
-    public function search_package($name)
-    {
-        $data = ['status' => 404, 'msg' => 'Data not found.'];
-        if($name != ''){
-            $result = Package::where('title', 'LIKE', "$name%")->get();
-            if($result->count() > 0){
-                $data = ['status' => 200, 'data' => $result];
-            }
-        }
-        return response()->json($data);
-    }
-    
+    // 50. search package by name: moved to PackageController.
+
     // 51. search center by name
     // search_center moved to CenterController.
 

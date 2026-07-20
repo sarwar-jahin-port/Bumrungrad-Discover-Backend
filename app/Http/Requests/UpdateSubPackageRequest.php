@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SubPackageRequest extends FormRequest
+class UpdateSubPackageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -34,7 +34,7 @@ class SubPackageRequest extends FormRequest
             'conditions' => 'nullable|string',
             'inclusions' => 'nullable|string',
             'exclusions' => 'nullable|string',
-            'cover_photo' => 'required|file|image',
+            'cover_photo' => 'nullable|file|image',
         ];
     }
 }

@@ -22,9 +22,10 @@ class PackageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required',
-            'description' => 'required',
-            'cover_photo' => 'required|file'
+            'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
+            'description' => 'required|string',
+            'cover_photo' => 'required|file|image',
         ];
     }
 }

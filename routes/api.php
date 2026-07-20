@@ -7,6 +7,8 @@ use App\Http\Controllers\EmergencyDeskController;
 use App\Http\Controllers\CenterController;
 use App\Http\Controllers\DoctorProfileController;
 use App\Http\Controllers\SpecialtyController;
+use App\Http\Controllers\PackageController;
+use App\Http\Controllers\AirAmbulanceController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\RegisterController;
 use Illuminate\Http\Request;
@@ -70,6 +72,28 @@ Route::controller(DoctorProfileController::class)->group(function () {
     Route::get('/search/doctor/{slug}', 'show');
 });
 
+Route::controller(PackageController::class)->group(function () {
+    Route::get('/get/package/{slug?}/{id?}', 'index')->name('get.package');
+    Route::post('/create/package', 'store');
+    Route::post('/update/package/{id}', 'update');
+    Route::get('/search/package/{name}', 'search');
+
+    Route::get('/get/sub/package/{slug?}/{id?}', 'subIndex')->name('get.sub_package');
+    Route::post('/create/sub/package', 'subStore');
+    Route::post('/update/sub/package/{id}', 'subUpdate');
+    Route::get('/get/sub/packages/{parentSlug}', 'subByParent');
+});
+
+Route::controller(AirAmbulanceController::class)->group(function () {
+    Route::get('/get/air/ambulance/hubs', 'hubIndex');
+    Route::post('/create/air/ambulance/hub', 'hubStore');
+    Route::post('/update/air/ambulance/hub/{id}', 'hubUpdate');
+
+    Route::get('/get/air/ambulance/{id?}', 'index')->name('get.air_ambulance');
+    Route::post('/add/air/ambulance', 'store');
+    Route::get('/delete/air_ambulances/{id}', 'destroy');
+});
+
 
 Route::controller(DoctorController::class)->middleware('auth:sanctum')->group(function () {
     Route::get('personal/appointment/{id}', 'personal_appointment');
@@ -78,19 +102,8 @@ Route::controller(DoctorController::class)->middleware('auth:sanctum')->group(fu
     Route::post('/add/order/medicine', 'order_medicine');
 });
 Route::controller(DoctorController::class)->group(function () {
-    // 1-3. specialty, sub specialty, doctors: moved to SpecialtyController / DoctorProfileController.
-
-    // 4. package
-    Route::get('/get/package/{slug?}/{id?}', 'get_packages')->name('get.package');
-    Route::post('/create/package', 'create_package');
-    Route::post('/update/package/{id}', 'update_package');
-
-    // 5. sub package
-    Route::get('/get/sub/package/{slug?}/{id?}', 'get_sub_package')->name('get.sub_package');
-    Route::post('/create/sub/package', 'create_sub_package');
-    Route::post('/update/sub/package/{id}', 'update_sub_package');
-    Route::get('/get/sub/packages/{slug}/{id}', 'get_sub_packages');
-    Route::get('/search/package/{name}', 'search_package');
+    // 1-5. specialty, sub specialty, doctors, packages, sub packages:
+    // moved to SpecialtyController / DoctorProfileController / PackageController.
 
     // 6. clinic and centers: moved to CenterController (see below).
     Route::get('/delete/{center}/{id}', 'delete_record');
@@ -103,9 +116,7 @@ Route::controller(DoctorController::class)->group(function () {
     Route::get('/get/air/pickup/{id?}', 'get_air_pickup')->name('get.air_pickup');
     Route::post('/add/air/pickup', 'air_pickup');
 
-    // 9. air ambulance
-    Route::get('/get/air/ambulance/{id?}', 'get_air_ambulance')->name('get.air_ambulance');
-    Route::post('/add/air/ambulance', 'air_ambulance');
+    // 9. air ambulance: moved to AirAmbulanceController (see above).
 
     // 10. order medicine
     Route::get('/get/order/medicine/{id?}', 'get_order_medicine')->name('get.order_medicine');

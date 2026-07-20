@@ -10,6 +10,7 @@ class SubPackage extends Model
     use HasFactory;
 
     protected $fillable = [
-        'parent', 'title', 'description', 'price', 'cover_photo', 'created_at', 'updated_at'
+        'parent_id', 'title', 'slug', 'description', 'price', 'location', 'content',
+        'shift1', 'shift2', 'conditions', 'inclusions', 'exclusions', 'cover_photo',
     ];
 }

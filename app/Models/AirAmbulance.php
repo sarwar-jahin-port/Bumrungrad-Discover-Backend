@@ -11,10 +11,8 @@ class AirAmbulance extends Model
 
     protected $fillable = [
         'entry_date',
-        'air_ticket',
-        'prescription',
+        'passport_copy',
+        'summary',
         'description',
-        'created_at',
-        'updated_at',
     ];
 }

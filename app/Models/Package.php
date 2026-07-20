@@ -10,6 +10,6 @@ class Package extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'cover', 'description', 'created_at', 'updated_at'
+        'title', 'slug', 'cover_photo', 'description',
     ];
 }
