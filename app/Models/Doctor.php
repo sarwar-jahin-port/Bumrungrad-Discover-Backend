@@ -11,24 +11,24 @@ class Doctor extends Model
 
     protected $fillable = [
         'name',
-        'image',
+        'slug',
+        'cover_photo',
         'specialty',
         'sub_specialty',
         'lang',
         'gender',
-        'school',
+        'schools',
         'certificates',
         'fellowships',
         'interests',
         'experiences',
         'researches',
         'article',
+        'trainings',
         'day',
         'arrival',
         'leave',
         'location',
         'shift',
-        'created_at',
-        'updated_at',
     ];
 }

@@ -1,6 +1,12 @@
 <?php
 
 use App\Http\Controllers\AdmissionController;
+use App\Http\Controllers\MedicalConsultancyController;
+use App\Http\Controllers\LodgingBookingController;
+use App\Http\Controllers\EmergencyDeskController;
+use App\Http\Controllers\CenterController;
+use App\Http\Controllers\DoctorProfileController;
+use App\Http\Controllers\SpecialtyController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\RegisterController;
 use Illuminate\Http\Request;
@@ -26,6 +32,44 @@ Route::controller(AdmissionController::class)->group(function () {
     Route::get('/get/admission/{id?}', 'index');
 });
 
+Route::controller(MedicalConsultancyController::class)->group(function () {
+    Route::post('/add/medical-consultancy', 'store');
+    Route::get('/get/medical-consultancy/{id?}', 'index');
+});
+
+Route::controller(LodgingBookingController::class)->group(function () {
+    Route::post('/add/lodging-booking', 'store');
+    Route::get('/get/lodging-booking/{id?}', 'index');
+});
+
+Route::controller(EmergencyDeskController::class)->group(function () {
+    Route::post('/add/emergency-desk', 'store');
+    Route::get('/get/emergency-desk/{id?}', 'index');
+});
+
+Route::controller(CenterController::class)->group(function () {
+    Route::get('/get/centers/{slug?}/{id?}', 'index')->name('get.center');
+    Route::post('/add/center', 'store');
+    Route::post('/update/center/{id}', 'update');
+    Route::get('/search/center/{name}', 'search');
+});
+
+Route::controller(SpecialtyController::class)->group(function () {
+    Route::get('get/specialty', 'index');
+    Route::post('add/specialty', 'store');
+    Route::get('get/sub/specialty', 'subIndex');
+    Route::post('add/sub/specialty', 'subStore');
+    Route::get('get/selected/sub/specialty/{specialty}', 'selected');
+});
+
+Route::controller(DoctorProfileController::class)->group(function () {
+    Route::get('get/doctors', 'index')->name('get.doctor');
+    Route::post('add/doctor', 'store');
+    Route::post('update/doctor/{id}', 'update');
+    Route::get('/search/doctor', 'search');
+    Route::get('/search/doctor/{slug}', 'show');
+});
+
 
 Route::controller(DoctorController::class)->middleware('auth:sanctum')->group(function () {
     Route::get('personal/appointment/{id}', 'personal_appointment');
@@ -34,20 +78,7 @@ Route::controller(DoctorController::class)->middleware('auth:sanctum')->group(fu
     Route::post('/add/order/medicine', 'order_medicine');
 });
 Route::controller(DoctorController::class)->group(function () {
-    // 1. specialty
-    Route::get('get/specialty', 'get_specialty');
-    Route::post('add/specialty', 'add_specialty');
-
-    // 2. sub specialty
-    Route::get('get/sub/specialty', 'get_sub_specialty');
-    Route::post('add/sub/specialty', 'add_sub_specialty');
-    Route::get('get/selected/sub/specialty/{id}', 'selected_sub_specialty');
-
-    // 3. doctors
-    Route::get('get/doctors', 'get_doctors')->name('get.doctor');
-    Route::post('add/doctor', 'add_doctor');
-    Route::get('/search/doctor', 'search_doctor');
-    Route::get('/search/doctor/{slug}/{id}', 'find_doctor');
+    // 1-3. specialty, sub specialty, doctors: moved to SpecialtyController / DoctorProfileController.
 
     // 4. package
     Route::get('/get/package/{slug?}/{id?}', 'get_packages')->name('get.package');
@@ -61,12 +92,8 @@ Route::controller(DoctorController::class)->group(function () {
     Route::get('/get/sub/packages/{slug}/{id}', 'get_sub_packages');
     Route::get('/search/package/{name}', 'search_package');
 
-    // 6. clinic and centers
-    Route::get('/get/centers/{slug?}/{id?}', 'get_centers')->name('get.center');
-    Route::post('/add/center', 'add_center');
-    Route::post('/update/center/{id}', 'update_center');
+    // 6. clinic and centers: moved to CenterController (see below).
     Route::get('/delete/{center}/{id}', 'delete_record');
-    Route::get('/search/center/{name}', 'search_center');
 
     // 7. air ticket
     Route::get('/get/air/ticket/{id?}', 'get_air_ticket')->name('get.air_ticket');

@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CenterRequest;
-use App\Http\Requests\DoctorRequest;
+use App\Http\Traits\HandlesFileUploads;
 use App\Http\Requests\PackageRequest;
 use App\Http\Requests\SubPackageRequest;
 use App\Models\Center;
@@ -14,12 +13,9 @@ use App\Models\User;
 use App\Models\HealthCheckUp;
 use App\Models\Doctor;
 use App\Models\Package;
-use App\Models\Specialty;
 use App\Models\SubPackage;
-use App\Models\SubSpecialty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Http\Controllers;
 use App\Models\AirAmbulance;
@@ -37,367 +33,12 @@ use App\Mail\SendMail;
 
 class DoctorController extends Controller
 {
-    /*--------------------------------------------------------------------------------------------------*/
-    //                                       reuseable functions
-    /*--------------------------------------------------------------------------------------------------*/
-    // 1. modify doctor data
-    public function makeJson($array)
-    {
-        foreach ($array as $key => $items) {
-            $arr = [];
-            for ($i = 0; $i < count($items); $i++) {
-                $arr[$key . $i] = $items[$i];
-            }
-            if (count($arr) > 0) {
-                $collection[$key] = json_encode($arr);
-            } else {
-                $collection[$key] = NULL;
-            }
-        }
-        return $collection;
-    }
-
-    // 2. upload images to server
-    public function upload_file($file, $path, $type)
-    {
-        $url = NULL;
-        if ($file->hasFile($type)) {
-            $doc = $file->$type;
-            $extension = $file->file($type)->getClientOriginalExtension();
-            $doc_name = $type . '-' . time() . Str::random(10) . '.' . $extension;
-            $doc->move(public_path($path), $doc_name);
-            $url = asset('public/' . $path . $doc_name);
-        }
-        return $url;
-    }
-
-    // 3. make array to json for doctor table
-    public function sendJson($col, $string, $old)
-    {
-        $json_field = [];
-        for ($i = 0; $i < 100; $i++) {
-            $field = $col . '->' . $col . $i;
-            if (Doctor::where($field, $string)->exists()) {
-                array_push($json_field, $field);
-            }
-        }
-        
-        if (count($json_field) > 0) {
-            foreach($json_field as $key => $field){
-                if($key + 1 ==1){
-                    $old = $old->where($field, $string);
-                }else{
-                    $old = $old->orWhere($field, $string);
-                }
-            }
-        } else {
-            $old = $old->where($col, $string);
-        }
-        return $old;
-    }
+    use HandlesFileUploads;
 
     /*--------------------------------------------------------------------------------------------------*/
     //                                       api functions
     /*--------------------------------------------------------------------------------------------------*/
-    // 1. add specialty
-    public function add_specialty(Request $request)
-    {
-        $validation = Validator::make($request->all(), ['name' => 'required']);
-
-        if ($validation->fails()) {
-            return json_encode(array('validationError' => $validation->getMessageBag()->toArray()));
-        } else {
-            $check = Specialty::where('name', $request->name)->first();
-            if ($check != '') {
-                $data = ['status' => 404, 'msg' => $request->name . ' is available.'];
-                return response()->json(['response' => $data]);
-            }
-            $add = Specialty::insert(['name' => $request->name]);
-            if ($add) {
-                $data = ['status' => 200, 'msg' => 'Specialty added.'];
-            } else {
-                $data = ['status' => 404, 'msg' => 'Something wrong.'];
-            }
-            return response()->json(['response' => $data]);
-        }
-    }
-
-    // 2. add sub specialty
-    public function add_sub_specialty(Request $request)
-    {
-        $validation = Validator::make($request->all(), [
-            'sub_specialty' => 'required', 'specialty' => 'required'
-        ]);
-
-        if ($validation->fails()) {
-            return response()->json(['status' => 404, 'msg' => 'Validation error.', 'err' => $validation->errors()]);
-        } else {
-            $check = SubSpecialty::where('specialty', $request->specialty)->where('sub_specialty', $request->sub_specialty)->exists();
-            if ($check) {
-                $data = ['status' => 404, 'msg' => $request->sub_specialty . ' already exists.'];
-                return response()->json(['response' => $data]);
-            }
-            $add = SubSpecialty::insert(['specialty' => $request->specialty, 'sub_specialty' => $request->sub_specialty]);
-            if ($add) {
-                $data = ['status' => 200, 'msg' => 'Sub specialty added.'];
-            } else {
-                $data = ['status' => 404, 'msg' => 'Something wrong.'];
-            }
-            return response()->json(['response' => $data]);
-        }
-    }
-
-    // 3. get specialty
-    public function get_specialty()
-    {
-        $specialty = Specialty::orderBy('name', 'ASC')->get();
-        if ($specialty->count() > 0) {
-            $data = ['data' => $specialty, 'status' => 200];
-        } else {
-            $data = ['status' => 404, 'msg' => 'Data not found.'];
-        }
-        return response()->json(['response' => $data]);
-    }
-
-    // 4. get sub specialty
-    public function get_sub_specialty()
-    {
-        $sub = SubSpecialty::orderBy('sub_specialty', 'ASC')->get();
-        if ($sub->count() > 0) {
-            $data = ['data' => $sub, 'status' => 200];
-        } else {
-            $data = ['status' => 404, 'msg' => 'Data not found.'];
-        }
-        return response()->json(['response' => $data]);
-    }
-
-    // 5. get selected sub specialty
-    public function selected_sub_specialty($specialty)
-    {
-        $selected = SubSpecialty::where('specialty', $specialty)->get();
-        if ($selected->count() > 0) {
-            $data = ['data' => $selected, 'status' => 200];
-        } else {
-            $data = ['status' => 404, 'msg' => 'Data not found.'];
-        }
-        return response()->json(['response' => $data]);
-    }
-
-    // 6. get all doctors
-    public function get_doctors()
-    {
-        $doctors = Doctor::get();
-        if ($doctors->count() > 0) {
-            $doctors->each(function ($item) {
-                $item->specialty = Specialty::where('name', $item->specialty)->value('name');
-                
-                $item->certificates = json_decode($item->certificates);
-                $item->fellowships = json_decode($item->fellowships);
-                $item->experiences = json_decode($item->experiences);
-                $item->researches = json_decode($item->researches);
-                $item->interests = json_decode($item->interests);
-                $item->article = json_decode($item->article);
-                $item->trainings = json_decode($item->trainings);
-                $item->schools = json_decode($item->schools);
-                
-                $item->sub_specialty = $item->sub_specialty ? array_values((array) json_decode($item->sub_specialty)) : NULL;
-                $item->lang = array_values((array) json_decode($item->lang));
-                $item->day = array_values((array) json_decode($item->day));
-                $item->arrival = array_values((array) json_decode($item->arrival));
-                $item->leave = array_values((array) json_decode($item->leave));
-                $item->location = array_values((array) json_decode($item->location));
-                $item->shift = array_values((array) json_decode($item->shift));
-            });
-            
-            $data = ['arr' => '$arr', 'data' => $doctors, 'status' => 200];
-        } else {
-            $data = ['status' => 404, 'msg' => 'Data not found.'];
-        }
-        return response()->json(['response' => $data]);
-    }
-
-    // 7. add new doctor
-    public function add_doctor(Request $request)
-    {
-        $validation = Validator::make($request->all(), [
-            'name' => 'required',
-            'lang' => 'required',
-            'schools' => 'required',
-            'gender' => 'required',
-            'specialty' => 'required',
-        ]);
-
-        if ($validation->fails()) {
-            return response()->json(['status' => 404, 'err' => $validation->errors()]);
-        }
-
-        $path = 'assets/images/doctors/';
-        $image = $this->upload_file($request, $path, 'cover_photo');
-
-        $schedule = json_decode($request->schedule);
-        $day = $shift = $arrival = $leave = $location = [];
-        for ($i = 0; $i < count($schedule); $i++) {
-            for ($j = 0; $j < count($schedule[$i]); $j++) {
-                if ($j == 0) {
-                    array_push($day, $schedule[$i][$j]);
-                } elseif ($j == 1) {
-                    array_push($shift, $schedule[$i][$j]);
-                } elseif ($j == 2) {
-                    array_push($arrival, $schedule[$i][$j]);
-                } elseif ($j == 3) {
-                    array_push($leave, $schedule[$i][$j]);
-                } elseif ($j == 4) {
-                    array_push($location, $schedule[$i][$j]);
-                }
-            }
-        }
-
-        
-        $modify['day'] = $day;
-        $modify['shift'] = $shift;
-        $modify['arrival'] = $arrival;
-        $modify['leave'] = $leave;
-        $modify['location'] = $location;
-        $modify['lang'] = explode(',', $request->lang);
-        
-        if($request->sub_specialty){
-            $modify['sub_specialty'] = explode(',', $request->sub_specialty);
-        }
-
-        $json =  $this->makeJson($modify);
-        
-        if (!array_key_exists('sub_specialty',$json)){
-            $json['sub_specialty'] = NULL;
-        }
-        
-
-
-        $doctor = new Doctor();
-        $doctor->name = $request->name;
-        $doctor->slug = Str::slug($request->name, '-');
-        $doctor->cover_photo = $image;
-        $doctor->specialty = $request->specialty;
-        $doctor->sub_specialty = $json['sub_specialty'];
-        $doctor->lang = $json['lang'];
-        $doctor->gender = $request->gender;
-        $doctor->schools = $request->schools;
-        $doctor->certificates = $request->certificates;
-        $doctor->fellowships = $request->fellowships;
-        $doctor->interests = $request->interests;
-        $doctor->experiences = $request->experiences;
-        $doctor->researches = $request->researches;
-        $doctor->article = $request->article;
-        $doctor->trainings = $request->trainings;
-        $doctor->day = $json['day'];
-        $doctor->location = $json['location'];
-        $doctor->arrival = $json['arrival'];
-        $doctor->leave = $json['leave'];
-        $doctor->shift = $json['shift'];
-        $doctor->save();
-
-        $data = ['status' => 200, 'msg' => 'Doctor added.'];
-        return response()->json(['response' => $data]);
-    }
-
-    // 8. search doctor
-    public function search_doctor(Request $request)
-    {
-        $validation = Validator::make($request->all(), [
-            'school' => 'missing',
-            'certificates' => 'missing',
-            'fellowships' => 'missing',
-            'interests' => 'missing',
-            'experiences' => 'missing',
-            'researches' => 'missing',
-            'article' => 'missing',
-        ]);
-
-        if ($validation->fails()) {
-            return response()->json(['err' => 'Something went wrong.']);
-        }
-
-        $search = DB::table('doctors');
-        foreach ($request->all() as $key => $query) {
-            if ($query != '') {
-                if ($key == 'sub_specialty') {
-                    $search = $this->sendJson($key, $query, $search);
-                } elseif ($key == 'lang') {
-                    $search = $this->sendJson($key, $query, $search);
-                } elseif ($key == 'day') {
-                    $search = $this->sendJson($key, $query, $search);
-                } elseif ($key == 'shift') {
-                    $search = $this->sendJson($key, $query, $search);
-                } elseif ($key == 'location') {
-                    $search = $this->sendJson($key, $query, $search);
-                } else {
-                    if($key == 'name'){
-                        $search = $search->where($key, 'LIKE', "%$query%");
-                    }else{
-                        $search = $search->where($key, $query);
-                    }
-                }
-            }
-        }
-        
-        
-
-        $doctors = $search->get();
-        $response = ['status' => 404, 'msg' => 'Data not found.', 'query' => $request->all()];
-        if ($doctors->count() > 0) {
-            $doctors->each(function ($item) {
-                $item->specialty = Specialty::where('name', $item->specialty)->value('name');
-                $item->lang = array_values((array) json_decode($item->lang));
-                $item->sub_specialty = array_values((array) json_decode($item->sub_specialty));
-                $item->schools = json_decode($item->schools);
-                $item->certificates = json_decode($item->certificates);
-                $item->fellowships = json_decode($item->fellowships);
-                $item->experiences = json_decode($item->experiences);
-                $item->researches = json_decode($item->researches);
-                $item->interests = json_decode($item->interests);
-                $item->article = json_decode($item->article);
-                $item->trainings = json_decode($item->trainings);
-                $item->day = array_values((array) json_decode($item->day));
-                $item->arrival = array_values((array) json_decode($item->arrival));
-                $item->leave = array_values((array) json_decode($item->leave));
-                $item->location = array_values((array) json_decode($item->location));
-                $item->shift = array_values((array) json_decode($item->shift));
-            });
-        }else{
-            $doctor = 0;
-        }
-        $response = ['status' => 200, 'data' => $doctors, 'query' => $request->all()];
-        return response()->json($response);
-    }
-
-    // 9. search single doctor
-    public function find_doctor($slug, $id)
-    {
-        $res = ['status' => 404, 'msg' => 'Data not found.'];
-        if ($id > 0) {
-            $doctor = Doctor::where('id', $id)->first();
-
-            if ($doctor != '') {
-                $doctor->specialty = Specialty::where('name', $doctor->specialty)->value('name');
-                $doctor->lang = array_values((array) json_decode($doctor->lang));
-                $doctor->sub_specialty = array_values((array) json_decode($doctor->sub_specialty));
-                $doctor->schools = json_decode($doctor->schools);
-                $doctor->certificates = json_decode($doctor->certificates);
-                $doctor->fellowships = json_decode($doctor->fellowships);
-                $doctor->experiences = json_decode($doctor->experiences);
-                $doctor->researches = json_decode($doctor->researches);
-                $doctor->interests = json_decode($doctor->interests);
-                $doctor->article = json_decode($doctor->article);
-                $doctor->trainings = json_decode($doctor->trainings);
-                $doctor->day = array_values((array) json_decode($doctor->day));
-                $doctor->arrival = array_values((array) json_decode($doctor->arrival));
-                $doctor->leave = array_values((array) json_decode($doctor->leave));
-                $doctor->location = array_values((array) json_decode($doctor->location));
-                $doctor->shift = array_values((array) json_decode($doctor->shift));
-                $res = ['status' => 200, 'data' => $doctor];
-            }
-        }
-        return response()->json(['response' => $res]);
-    }
+    // 1-9. specialty, sub specialty, doctors: moved to SpecialtyController / DoctorProfileController.
 
     // 10. create new parent package
     public function create_package(PackageRequest $request)
@@ -539,75 +180,7 @@ class DoctorController extends Controller
         return response()->json($data);
     }
 
-    // 15. add clinic
-    public function add_center(Request $request)
-    {
-        $path = 'assets/images/centers/';
-        $image = $this->upload_file($request, $path, 'cover_photo');
-
-        $data['name'] = $request->name;
-        $data['cover_photo'] = $image;
-        $data['location'] = $request->location;
-        $data['description'] = $request->description;
-        $data['informations'] = $request->informations;
-        $data['conditions'] = $request->conditions;
-        $data['treatments'] = $request->treatments;
-
-        Center::insert($data);
-        return response()->json(['status' => 200, 'msg' => 'Clinic added.']);
-    }
-    
-    public function update_center(Request $request, $id)
-    {
-        if($request->cover_photo){
-            $path = 'assets/images/centers/';
-            $image = $this->upload_file($request, $path, 'cover_photo');
-            $data['cover_photo'] = $image;
-        }
-
-        $data['name'] = $request->name;
-        $data['location'] = $request->location;
-        $data['description'] = $request->description;
-        $data['informations'] = $request->informations;
-        $data['conditions'] = $request->conditions;
-        $data['treatments'] = $request->treatments;
-
-        Center::where('id', $id)->update($data);
-        return response()->json(['status' => 200, 'msg' => 'Clinic updated.']);
-    }
-
-    // 16. get clinics
-    public function get_centers($slug = '', $id = '')
-    {
-        if($id == ''){
-            $centers = Center::get();
-            $res = ['status' => 404, 'msg' => 'Data not found.'];
-            if ($centers->count() > 0) {
-                $centers->each(function ($item){
-                    $item->slug = Str::slug($item->name);
-                    $item->informations = json_decode($item->informations);
-                    $item->conditions = json_decode($item->conditions);
-                    $item->treatments = json_decode($item->treatments);
-                });
-                $res = ['data' => $centers, 'status' => 200];
-            }
-        }else{
-            $res = ['status' => 200, 'msg' => 'Data not found'];
-            if($id > 0){
-                $center = Center::where('id', $id)->first();
-                if ($center != '') {
-                    
-                    $center->informations = json_decode($center->informations);
-                    $center->conditions = json_decode($center->conditions);
-                    $center->treatments = json_decode($center->treatments);
-                    
-                    $res = ['data' => $center, 'status' => 200];
-                }
-            }
-        }
-
-        return response()->json(['response' => $res]);
-    }
+    // 15-16. add/update/get clinics: moved to CenterController.
 
     // 17. air ticket
     public function air_ticket(\App\Http\Requests\AirTicketRequest $request)
@@ -871,18 +444,6 @@ class DoctorController extends Controller
             return response()->json($data);
         } else {
             return response()->json(['status' => 404, 'msg' => 'Data not found.']);
-        }
-    }
-    
-    // 30. delete center
-    public function delete_center($id)
-    {
-        if($id != '' && $id > 0){
-            $delete = Center::where('id', $id)->delete();
-            if($delete){
-                $data = ['status' => 200, 'msg' => 'Center deleted'];
-                return response()->json($data);
-            }
         }
     }
     
@@ -1218,18 +779,8 @@ class DoctorController extends Controller
     }
     
     // 51. search center by name
-    public function search_center($name)
-    {
-        $data = ['status' => 404, 'msg' => 'Data not found.'];
-        if($name != ''){
-            $result = Center::where('name', 'LIKE', "$name%")->get();
-            if($result->count() > 0){
-                $data = ['status' => 200, 'data' => $result];
-            }
-        }
-        return response()->json($data);
-    }
-    
+    // search_center moved to CenterController.
+
     // send email
     public function send_mail($mail_data)
     {

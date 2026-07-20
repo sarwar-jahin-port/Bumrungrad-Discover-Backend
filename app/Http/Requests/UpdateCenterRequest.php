@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CenterRequest extends FormRequest
+class UpdateCenterRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,7 +22,7 @@ class CenterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cover_photo' => 'required|file|image',
+            'cover_photo' => 'nullable|file|image',
             'name' => 'required|string|max:255',
             'location' => 'required|string',
             'slug' => 'nullable|string|max:255',

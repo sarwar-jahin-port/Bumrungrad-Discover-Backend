@@ -10,6 +10,8 @@ class Center extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'cover', 'description', 'created_at', 'updated_at'
+        'name', 'slug', 'cover_photo', 'location', 'description', 'content',
+        'informations', 'conditions', 'treatments',
+        'floor_map', 'operational_hours', 'whatsapp_hotline',
     ];
 }
