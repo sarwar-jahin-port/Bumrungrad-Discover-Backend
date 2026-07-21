@@ -84,9 +84,9 @@
                         Appointment For
                       </p>
                       <li style="line-height: 21px">
-                        Doctor: {{ $mail_data['doctor'] }}
+                        Doctor: {{ $mail_data['doctor'] ?? 'No preference' }}
                       </li>
-                      <li style="line-height: 21px">Specialty: {{ $mail_data['specialty'] }}</li>
+                      <li style="line-height: 21px">Specialty: {{ $mail_data['specialty'] ?? '' }}</li>
                       <li style="line-height: 21px">Phone: +8801324-418100</li>
                     </td>
                   </tr>
@@ -102,13 +102,13 @@
                         Appointment Schedule
                       </p>
                       <li style="line-height: 21px">
-                       First Date: {{ $mail_data['selectedDate'] }}
+                       First Date: {{ $mail_data['selectedDate'] ?? '' }}
                       </li>
-                      <li style="line-height: 21px">First Shift: {{ $mail_data['shift'] }}</li>
+                      <li style="line-height: 21px">First Shift: {{ $mail_data['shift'] ?? '' }}</li>
                       <li style="line-height: 21px">
-                        Second Date: {{ $mail_data['selectedDate2'] }}
+                        Second Date: {{ $mail_data['selectedDate2'] ?? '' }}
                       </li>
-                      <li style="line-height: 21px">Second Shift: {{ $mail_data['shift2'] }}</li>
+                      <li style="line-height: 21px">Second Shift: {{ $mail_data['shift2'] ?? '' }}</li>
                     </td>
                   </tr>
                   <tr>
@@ -123,16 +123,16 @@
                       Patient Information
                       </p>
                       <li style="line-height: 21px">
-                      Name: {{ $mail_data['PataientFirstName'] }} {{ $mail_data['PataientLastName'] }}
+                      Name: {{ $mail_data['PataientFirstName'] ?? '' }} {{ $mail_data['PataientLastName'] ?? '' }}
 
                       </li>
-                      <li style="line-height: 21px">DOB: {{ $mail_data['PataientDob'] }}</li>
+                      <li style="line-height: 21px">DOB: {{ $mail_data['PataientDob'] ?? '' }}</li>
                       <li style="line-height: 21px">
-                      Gender: {{ $mail_data['PataientGender'] }} </li>
-                      <li style="line-height: 21px">Citizenship: {{ $mail_data['PataientCitizenship'] }}</li>
-                      <li style="line-height: 21px">Country: {{ $mail_data['country'] }}</li>
-                      <li style="line-height: 21px">Email: {{ $mail_data['PataientEmail'] }}</li>
-                      <li style="line-height: 21px">Phone: {{ $mail_data['PataientPhone'] }}</li>
+                      Gender: {{ $mail_data['PataientGender'] ?? '' }} </li>
+                      <li style="line-height: 21px">Citizenship: {{ $mail_data['PataientCitizenship'] ?? '' }}</li>
+                      <li style="line-height: 21px">Country: {{ $mail_data['country'] ?? '' }}</li>
+                      <li style="line-height: 21px">Email: {{ $mail_data['PataientEmail'] ?? '' }}</li>
+                      <li style="line-height: 21px">Phone: {{ $mail_data['PataientPhone'] ?? '' }}</li>
                     </td>
                   </tr>
                 </table>

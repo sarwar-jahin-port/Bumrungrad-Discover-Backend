@@ -13,5 +13,7 @@ class Blogs extends Model
         'blogImage',
         'blogTitle',
         'blogDescription',
+        'slug',
+        'region',
     ];
 }

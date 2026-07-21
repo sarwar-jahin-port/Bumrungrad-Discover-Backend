@@ -9,6 +9,12 @@ use App\Http\Controllers\DoctorProfileController;
 use App\Http\Controllers\SpecialtyController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\AirAmbulanceController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\BlogController;
+use App\Http\Controllers\InsuranceController;
+use App\Http\Controllers\PatientStoryController;
+use App\Http\Controllers\SiteSettingController;
+use App\Http\Controllers\FreeConsultationController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\RegisterController;
 use Illuminate\Http\Request;
@@ -94,6 +100,46 @@ Route::controller(AirAmbulanceController::class)->group(function () {
     Route::get('/delete/air_ambulances/{id}', 'destroy');
 });
 
+Route::controller(NewsController::class)->group(function () {
+    Route::get('/get/news/{id?}', 'index')->name('get.news');
+    Route::post('/add/news', 'store');
+    Route::post('/update/news/{id}', 'update');
+    Route::get('/delete/news/{id}', 'destroy');
+});
+
+Route::controller(BlogController::class)->group(function () {
+    Route::get('/get-all-blogs', 'paginated');
+    Route::get('/get/blogs/{slug?}', 'index')->name('get.blogs');
+    Route::post('/add/blogs', 'store');
+    Route::post('/update/blogs/{id}', 'update');
+    Route::get('/delete/blogs/{id}', 'destroy');
+});
+
+Route::controller(InsuranceController::class)->group(function () {
+    Route::get('/get/insurance-providers', 'index');
+    Route::post('/create/insurance-provider', 'store');
+    Route::post('/update/insurance-provider/{id}', 'update');
+    Route::get('/delete/insurance-provider/{id}', 'destroy');
+});
+
+Route::controller(PatientStoryController::class)->group(function () {
+    Route::get('/get/patient-stories', 'index');
+    Route::post('/add/patient-story', 'store');
+    Route::get('/get/patient-stories/admin', 'adminIndex');
+    Route::post('/update/patient-story/{id}', 'update');
+    Route::get('/delete/patient-story/{id}', 'destroy');
+});
+
+Route::controller(SiteSettingController::class)->group(function () {
+    Route::get('/get/site-settings', 'index');
+    Route::post('/update/site-settings', 'update');
+});
+
+Route::controller(FreeConsultationController::class)->group(function () {
+    Route::post('/add/free-consultation', 'store');
+    Route::get('/get/free-consultations', 'index');
+});
+
 
 Route::controller(DoctorController::class)->middleware('auth:sanctum')->group(function () {
     Route::get('personal/appointment/{id}', 'personal_appointment');
@@ -153,14 +199,8 @@ Route::controller(DoctorController::class)->group(function () {
     // 18. visa processing
     Route::get('/get/visa/precessing/{id?}', 'get_visa_processing');
 
-    // 19. news
-    Route::post('/add/news', 'add_news');
-    Route::get('/get/news/{id?}', 'get_news');
-    
-    // 20. blog
-    Route::post('/add/blogs', 'add_blog');
-    Route::get('/get/blogs/{id?}', 'get_blog');
-    
+    // 19-20. news, blog: moved to NewsController / BlogController (see below).
+
     // 21. count of all categories
     Route::get('get/category/length', 'category_length');
     

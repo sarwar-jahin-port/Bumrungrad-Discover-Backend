@@ -5,14 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class News extends Model
+class PatientStory extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'newsImage',
-        'newsTitle',
-        'newsDescription',
-        'newsSlogan',
+        'patient_name',
+        'country',
+        'rating',
+        'story',
+        'status',
     ];
 }

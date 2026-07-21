@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Traits\HandlesFileUploads;
 use App\Models\Center;
-use App\Models\News;
-use App\Models\Blogs;
 use App\Models\VisaProcessing;
 use App\Models\User;
 use App\Models\HealthCheckUp;
@@ -239,10 +237,17 @@ class DoctorController extends Controller
         $data['medicalReport2'] = $investigationDocument2;
         $data['medicalReport3'] = $investigationDocument3;
 
-        Doctorappoinment::insert($data);
-        
-        $this->send_mail($data);
-        
+        Doctorappoinment::create($data);
+
+        try {
+            $this->send_mail($data);
+        } catch (\Throwable $e) {
+            // The appointment is already saved; a notification-email failure
+            // (e.g. SMTP unreachable) shouldn't turn a successful booking
+            // into an error response for the patient.
+            \Log::warning('Doctor appointment confirmation email failed: ' . $e->getMessage());
+        }
+
         $res = ['status' => 200, 'msg' => 'Doctor appoinment created.'];
         return response()->json($res);
     }
@@ -474,69 +479,8 @@ class DoctorController extends Controller
     }
     
     // 46. news 
-    public function add_news(Request $request)
-    {
-        $path = 'assets/images/news/';
-        $image = $this->upload_file($request, $path, 'newsImage');
-        
-        $data = $request->all();
-        $data['newsImage'] = $image;
-        
-        News::insert($data);
-        $res = ['status' => 200, 'msg' => 'News added.'];
-        return response()->json($res);
-    }
-    
-    // 47. get news
-    public function get_news($id ='')
-    {
-        $data = ['status' => 404, 'msg' => 'Data not found.'];
-        if($id != '' && $id >0){
-            $news = News::where('id', $id)->first();
-            if($news != ''){
-                $data = ['status' => 200, 'data' => $news];
-            }
-        }else{
-            $news = News::get();
-            if($news->count() > 0){
-                $data = ['status' => 200, 'data' => $news];
-            }
-        }
-        return response()->json($data);
-    }
-    
-    // 48. news 
-    public function add_blog(Request $request)
-    {
-        $path = 'assets/images/blog/';
-        $image = $this->upload_file($request, $path, 'blogImage');
-        
-        $data = $request->all();
-        $data['blogImage'] = $image;
-        
-        Blogs::insert($data);
-        $res = ['status' => 200, 'msg' => 'Blogs added.'];
-        return response()->json($res);
-    }
-    
-    // 49. get news
-    public function get_blog($id ='')
-    {
-        $data = ['status' => 404, 'msg' => 'Data not found.'];
-        if($id != '' && $id >0){
-            $blog = Blogs::where('id', $id)->first();
-            if($blog != ''){
-                $data = ['status' => 200, 'data' => $blog];
-            }
-        }else{
-            $blog = Blogs::get();
-            if($blog->count() > 0){
-                $data = ['status' => 200, 'data' => $blog];
-            }
-        }
-        return response()->json($data);
-    }
-    
+    // 46-49. news, blog: moved to NewsController / BlogController.
+
     // all category length
     public function category_length()
     {
