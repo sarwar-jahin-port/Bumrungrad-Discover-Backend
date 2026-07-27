@@ -94,6 +94,7 @@ Route::controller(AirAmbulanceController::class)->group(function () {
     Route::get('/get/air/ambulance/hubs', 'hubIndex');
     Route::post('/create/air/ambulance/hub', 'hubStore');
     Route::post('/update/air/ambulance/hub/{id}', 'hubUpdate');
+    Route::get('/delete/air/ambulance/hub/{id}', 'hubDestroy');
 
     Route::get('/get/air/ambulance/{id?}', 'index')->name('get.air_ambulance');
     Route::post('/add/air/ambulance', 'store');

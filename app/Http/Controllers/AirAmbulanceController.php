@@ -38,6 +38,16 @@ class AirAmbulanceController extends Controller
         return response()->json(['status' => 200, 'msg' => 'Hub updated.']);
     }
 
+    public function hubDestroy($id)
+    {
+        $hub = AirAmbulanceHub::where('id', $id)->first();
+        if (!$hub) {
+            return response()->json(['status' => 404, 'msg' => 'Hub not found.']);
+        }
+        $hub->delete();
+        return response()->json(['status' => 200, 'msg' => 'Hub deleted.']);
+    }
+
     public function store(AirAmbulanceRequest $request)
     {
         $data = $request->safe()->except('passport_copy');
