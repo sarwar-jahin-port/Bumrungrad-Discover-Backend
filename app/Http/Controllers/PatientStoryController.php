@@ -4,16 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PatientStoryRequest;
 use App\Http\Requests\UpdatePatientStoryRequest;
+use App\Http\Traits\NotifiesAdmin;
 use App\Models\PatientStory;
 
 class PatientStoryController extends Controller
 {
+    use NotifiesAdmin;
+
     public function store(PatientStoryRequest $request)
     {
         $data = $request->validated();
         $data['status'] = 'pending';
 
         PatientStory::create($data);
+        $this->notifyAdmin('Patient Story', $data);
         return response()->json(['status' => 200, 'msg' => 'Thank you for sharing your story. It will appear once reviewed.']);
     }
 

@@ -24,6 +24,7 @@ class OrderMedicineRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'phoneNumber' => 'required|string|max:255',
+            'concern' => 'required|string',
         ];
     }
 }

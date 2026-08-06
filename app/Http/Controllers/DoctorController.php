@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\HandlesFileUploads;
+use App\Http\Traits\NotifiesAdmin;
 use App\Models\Center;
 use App\Models\VisaProcessing;
 use App\Models\User;
@@ -28,7 +29,7 @@ use App\Mail\SendMail;
 
 class DoctorController extends Controller
 {
-    use HandlesFileUploads;
+    use HandlesFileUploads, NotifiesAdmin;
 
     /*--------------------------------------------------------------------------------------------------*/
     //                                       api functions
@@ -42,7 +43,9 @@ class DoctorController extends Controller
     // 17. air ticket
     public function air_ticket(\App\Http\Requests\AirTicketRequest $request)
     {
-        AirTicket::create($request->validated());
+        $data = $request->validated();
+        AirTicket::create($data);
+        $this->notifyAdmin('Air Ticket Procurement', $data);
 
         $res = ['status' => 200, 'msg' => 'Ticket created.'];
         return response()->json($res);
@@ -71,17 +74,11 @@ class DoctorController extends Controller
     }
 
     // 19. air pickup
-    public function air_pickup(Request $request)
+    public function air_pickup(\App\Http\Requests\AirPickupRequest $request)
     {
-        $path = 'assets/docs/air_pickup/';
-        $appointment = $this->upload_file($request, $path, 'appointment');
-        $air_ticket = $this->upload_file($request, $path, 'air_ticket');
-
-        $data['appointment'] = $appointment;
-        $data['air_ticket'] = $air_ticket;
-        $data['passenger'] = $request->passenger;
-
-        AirPickup::insert($data);
+        $data = $request->validated();
+        AirPickup::create($data);
+        $this->notifyAdmin('Airport Pick & Drop', $data);
 
         $res = ['status' => 200, 'msg' => 'Airpickup created.'];
         return response()->json($res);
@@ -114,7 +111,9 @@ class DoctorController extends Controller
     // 23. order medicine
     public function order_medicine(\App\Http\Requests\OrderMedicineRequest $request)
     {
-        OrderMedicine::create($request->validated());
+        $data = $request->validated();
+        OrderMedicine::create($data);
+        $this->notifyAdmin('Order Medicine', $data);
 
         $res = ['status' => 200, 'msg' => 'Order medicine created.'];
         return response()->json($res);
@@ -158,8 +157,14 @@ class DoctorController extends Controller
     public function tele_medicines(\App\Http\Requests\TeleMedicineRequest $request)
     {
         $data = $request->validated();
+        $relPath = 'assets/docs/telemedicine/';
+        $data['passport'] = $this->upload_file($request, $relPath, 'passport');
 
         TeleMedicine::create($data);
+
+        $attachments = $data['passport'] ? [public_path($relPath . basename($data['passport']))] : [];
+        $this->notifyAdmin('Telemedicine', $data, $attachments);
+
         $res = ['status' => 200, 'msg' => 'Tele medicine created.'];
         return response()->json($res);
     }
@@ -187,15 +192,17 @@ class DoctorController extends Controller
     }
     
     // 27. post medical report
-    public function medical_report(Request $request)
+    public function medical_report(\App\Http\Requests\MedicalReportRequest $request)
     {
-        $path = 'assets/docs/medicalreport/';
-        $investigationDocument = $this->upload_file($request, $path, 'passport');
-
-        $data = $request->all();
-        $data['passport'] = $investigationDocument;
+        $data = $request->validated();
+        $relPath = 'assets/docs/medicalreport/';
+        $data['passport'] = $this->upload_file($request, $relPath, 'passport');
 
         Medicalreport::insert($data);
+
+        $attachments = $data['passport'] ? [public_path($relPath . basename($data['passport']))] : [];
+        $this->notifyAdmin('Medical Record', $data, $attachments);
+
         $res = ['status' => 200, 'msg' => 'Medical report created.'];
         return response()->json($res);
     }
@@ -239,13 +246,18 @@ class DoctorController extends Controller
 
         Doctorappoinment::create($data);
 
-        try {
-            $this->send_mail($data);
-        } catch (\Throwable $e) {
-            // The appointment is already saved; a notification-email failure
-            // (e.g. SMTP unreachable) shouldn't turn a successful booking
-            // into an error response for the patient.
-            \Log::warning('Doctor appointment confirmation email failed: ' . $e->getMessage());
+        $attachments = collect([$investigationDocument, $investigationDocument1, $investigationDocument2, $investigationDocument3])
+            ->filter()
+            ->map(fn ($url) => public_path($path . basename($url)))
+            ->all();
+        $this->notifyAdmin('Doctor Appointment', $data, $attachments);
+
+        if (!empty($data['PataientEmail'])) {
+            try {
+                Mail::to($data['PataientEmail'])->send(new SendMail($data));
+            } catch (\Throwable $e) {
+                \Log::warning('Doctor appointment patient confirmation email failed: ' . $e->getMessage());
+            }
         }
 
         $res = ['status' => 200, 'msg' => 'Doctor appoinment created.'];
@@ -279,6 +291,7 @@ class DoctorController extends Controller
     {
         $data = $request->all();
         Question::insert($data);
+        $this->notifyAdmin('Send Query', $data);
         $res = ['status' => 200, 'msg' => 'Question created.'];
         return response()->json($res);
     }
@@ -330,8 +343,22 @@ class DoctorController extends Controller
     // 35. healty check up
     public function add_health_checkup(Request $request)
     {
+        // $request->all() never included the uploaded files (they only exist
+        // via $request->file()), so passport/other_doc were silently dropped
+        // before — save them properly now that we're attaching them to mail.
+        $relPath = 'assets/docs/checkup/';
         $data = $request->all();
+        $data['passport'] = $this->upload_file($request, $relPath, 'passport');
+        $data['other_doc'] = $this->upload_file($request, $relPath, 'other_doc');
+
         HealthCheckUp::insert($data);
+
+        $attachments = collect([$data['passport'], $data['other_doc']])
+            ->filter()
+            ->map(fn ($url) => public_path($relPath . basename($url)))
+            ->all();
+        $this->notifyAdmin('Check Up', $data, $attachments);
+
         $res = ['status' => 200, 'msg' => 'Health checkup created.'];
         return response()->json($res);
     }
@@ -401,6 +428,7 @@ class DoctorController extends Controller
     {
         $data = $request->all();
         PackageBooking::insert($data);
+        $this->notifyAdmin('Package Booking', $data);
         $res = ['status' => 200, 'msg' => 'Package booking created.'];
         return response()->json($res);
     }
@@ -441,7 +469,17 @@ class DoctorController extends Controller
     // 43. visa processing
     public function add_visa_processing(\App\Http\Requests\VisaProcessingRequest $request)
     {
-        VisaProcessing::create($request->validated());
+        $data = $request->validated();
+        $data['mediicalCorncern'] = $data['specificConcern'];
+        unset($data['specificConcern']);
+        $relPath = 'assets/docs/visa-processing/';
+        $data['passport'] = $this->upload_file($request, $relPath, 'passport');
+
+        VisaProcessing::create($data);
+
+        $attachments = $data['passport'] ? [public_path($relPath . basename($data['passport']))] : [];
+        $this->notifyAdmin('Visa Processing', $data, $attachments);
+
         $res = ['status' => 200, 'msg' => 'Visa processing added.'];
         return response()->json($res);
     }
@@ -518,25 +556,4 @@ class DoctorController extends Controller
 
     // 51. search center by name
     // search_center moved to CenterController.
-
-    // send email
-    public function send_mail($mail_data)
-    {
-        $this->set_config('MAIL_MAILER', 'smtp');
-        $this->set_config('MAIL_ENCRYPTION', 'tls');
-        $this->set_config('MAIL_HOST', 'natstechbd.com');
-        $this->set_config('MAIL_PORT', 465);
-        $this->set_config('MAIL_USERNAME', 'admin@bumrungraddiscover.com');
-        $this->set_config('MAIL_PASSWORD', 'Bumrungrad_Discover@__Admin');
-        Mail::to($mail_data['PataientEmail'])->send(new SendMail($mail_data));
-        Mail::to('rodiscoverbangladesh@gmail.com')->send(new SendMail($mail_data));
-        return 'mail sent';
-    }
-    
-    function set_config($key = '', $value = '')
-    {
-        $config = json_decode(file_get_contents(base_path('config/config.json')), true);
-        $config[$key] = $value;
-        file_put_contents(base_path('config/config.json'), json_encode($config));
-    }
 }

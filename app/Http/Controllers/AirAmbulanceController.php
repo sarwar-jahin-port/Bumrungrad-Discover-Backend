@@ -6,12 +6,13 @@ use App\Http\Requests\AirAmbulanceHubRequest;
 use App\Http\Requests\AirAmbulanceRequest;
 use App\Http\Requests\UpdateAirAmbulanceHubRequest;
 use App\Http\Traits\HandlesFileUploads;
+use App\Http\Traits\NotifiesAdmin;
 use App\Models\AirAmbulance;
 use App\Models\AirAmbulanceHub;
 
 class AirAmbulanceController extends Controller
 {
-    use HandlesFileUploads;
+    use HandlesFileUploads, NotifiesAdmin;
 
     public function hubIndex()
     {
@@ -50,10 +51,15 @@ class AirAmbulanceController extends Controller
 
     public function store(AirAmbulanceRequest $request)
     {
+        $relPath = 'assets/docs/air_ambulance/';
         $data = $request->safe()->except('passport_copy');
-        $data['passport_copy'] = $this->upload_file($request, 'assets/docs/air_ambulance/', 'passport_copy');
+        $data['passport_copy'] = $this->upload_file($request, $relPath, 'passport_copy');
 
         AirAmbulance::create($data);
+
+        $attachments = $data['passport_copy'] ? [public_path($relPath . basename($data['passport_copy']))] : [];
+        $this->notifyAdmin('Air Ambulance Request', $data, $attachments);
+
         return response()->json(['status' => 200, 'msg' => 'Air ambulance created.']);
     }
 

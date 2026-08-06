@@ -23,7 +23,11 @@ class AdmissionRequest extends FormRequest
     {
         return [
             'fullName' => 'required|string|max:255',
+            'birthDate' => 'required|date',
             'whatsapp' => 'required|string|max:255',
+            'patientType' => 'required|in:new,returning',
+            'medicalConcern' => 'required|string',
+            'passport' => 'required|file',
         ];
     }
 }

@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EmergencyDeskRequest;
+use App\Http\Traits\NotifiesAdmin;
 use App\Models\EmergencyDesk;
 
 class EmergencyDeskController extends Controller
 {
+    use NotifiesAdmin;
+
     public function store(EmergencyDeskRequest $request)
     {
-        EmergencyDesk::create($request->validated());
+        $data = $request->validated();
+        EmergencyDesk::create($data);
+        $this->notifyAdmin('Emergency Desk', $data);
         return response()->json(['status' => 200, 'msg' => 'Emergency desk request created.']);
     }
 

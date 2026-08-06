@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class TeleMedicineRequest extends FormRequest
+class MedicalReportRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,11 +22,10 @@ class TeleMedicineRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'fullName' => 'required|string|max:255',
-            'birthDate' => 'required|date',
-            'patientType' => 'required|in:new,returning',
-            'specificConcern' => 'required|string',
-            'contactDetails' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'whatsapp' => 'required|string|max:255',
+            'hnNum' => 'nullable|string|max:255',
+            'caseSummary' => 'required|string',
             'passport' => 'required|file',
         ];
     }

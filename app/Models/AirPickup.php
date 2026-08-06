@@ -13,6 +13,9 @@ class AirPickup extends Model
         'appointment',
         'air_ticket',
         'passenger',
+        'fullName',
+        'whatsapp',
+        'concern',
         'created_at',
         'updated_at',
     ];

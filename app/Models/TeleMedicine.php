@@ -27,6 +27,7 @@ class TeleMedicine extends Model
         'epaymentlink',
         'interpreter',
         'specificConcern',
+        'passport',
         'created_at',
         'updated_at',
     ];

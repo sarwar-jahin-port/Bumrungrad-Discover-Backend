@@ -23,7 +23,11 @@ class MedicalConsultancyRequest extends FormRequest
     {
         return [
             'fullName' => 'required|string|max:255',
+            'birthDate' => 'required|date',
+            'patientType' => 'required|in:new,returning',
             'whatsapp' => 'required|string|max:255',
+            'specificConcern' => 'required|string',
+            'passport' => 'required|file',
         ];
     }
 }

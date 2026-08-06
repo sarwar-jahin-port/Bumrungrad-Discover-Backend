@@ -15,6 +15,9 @@ use App\Http\Controllers\InsuranceController;
 use App\Http\Controllers\PatientStoryController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\FreeConsultationController;
+use App\Http\Controllers\LanguageInterpreterController;
+use App\Http\Controllers\FundTransferController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\RegisterController;
 use Illuminate\Http\Request;
@@ -53,6 +56,21 @@ Route::controller(LodgingBookingController::class)->group(function () {
 Route::controller(EmergencyDeskController::class)->group(function () {
     Route::post('/add/emergency-desk', 'store');
     Route::get('/get/emergency-desk/{id?}', 'index');
+});
+
+Route::controller(LanguageInterpreterController::class)->group(function () {
+    Route::post('/add/language-interpreter', 'store');
+    Route::get('/get/language-interpreter', 'index');
+});
+
+Route::controller(FundTransferController::class)->group(function () {
+    Route::post('/add/fund-transfer', 'store');
+    Route::get('/get/fund-transfer', 'index');
+});
+
+Route::controller(ContactController::class)->group(function () {
+    Route::post('/add/contact', 'store');
+    Route::get('/get/contact', 'index');
 });
 
 Route::controller(CenterController::class)->group(function () {
@@ -205,8 +223,6 @@ Route::controller(DoctorController::class)->group(function () {
     // 21. count of all categories
     Route::get('get/category/length', 'category_length');
     
-    // 21. must remove later
-    Route::get('send_mail/', 'send_mail');
     Route::get('test', function(){
         foreach(DB::table('sub_specialties')->get() as $sub_specialty){
             $new = str_replace('&', 'and', $sub_specialty->specialty);

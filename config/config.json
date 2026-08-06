@@ -1,1 +1,1 @@
-{"MAIL_MAILER":"smtp","MAIL_HOST":"natstechbd.com","MAIL_PORT":465,"MAIL_USERNAME":"admin@bumrungraddiscover.com","MAIL_PASSWORD":"Bumrungrad_Discover@__Admin","MAIL_ENCRYPTION":"tls","MAIL_FROM_ADDRESS":"admin@bumrungraddiscover.com","MAIL_FROM_NAME":"Bumrungraddiscover"}
+{"MAIL_MAILER":"smtp","MAIL_HOST":"smtp-relay.brevo.com","MAIL_PORT":587,"MAIL_USERNAME":"8d50ae001@smtp-brevo.com","MAIL_PASSWORD":"REPLACE_WITH_VALID_BREVO_SMTP_KEY","MAIL_ENCRYPTION":"tls","MAIL_FROM_ADDRESS":"rodiscoverbangladesh@gmail.com","MAIL_FROM_NAME":"Discover Bangladesh"}

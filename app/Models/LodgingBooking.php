@@ -9,5 +9,5 @@ class LodgingBooking extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['fullName', 'whatsapp'];
+    protected $fillable = ['fullName', 'whatsapp', 'concern'];
 }

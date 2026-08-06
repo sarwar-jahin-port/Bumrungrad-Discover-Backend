@@ -24,6 +24,8 @@ class VisaProcessingRequest extends FormRequest
         return [
             'fullName' => 'required|string|max:255',
             'whatsapp' => 'required|string|max:255',
+            'specificConcern' => 'required|string',
+            'passport' => 'required|file',
         ];
     }
 }

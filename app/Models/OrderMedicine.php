@@ -12,6 +12,7 @@ class OrderMedicine extends Model
     protected $fillable = [
         'name',
         'phoneNumber',
+        'concern',
         'prescription',
         'medicines',
         'quantity',

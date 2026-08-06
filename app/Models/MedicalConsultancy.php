@@ -12,5 +12,9 @@ class MedicalConsultancy extends Model
     protected $fillable = [
         'fullName',
         'whatsapp',
+        'birthDate',
+        'patientType',
+        'specificConcern',
+        'passport',
     ];
 }

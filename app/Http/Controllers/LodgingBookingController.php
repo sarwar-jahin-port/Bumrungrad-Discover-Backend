@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LodgingBookingRequest;
+use App\Http\Traits\NotifiesAdmin;
 use App\Models\LodgingBooking;
 
 class LodgingBookingController extends Controller
 {
+    use NotifiesAdmin;
+
     public function store(LodgingBookingRequest $request)
     {
-        LodgingBooking::create($request->validated());
+        $data = $request->validated();
+        LodgingBooking::create($data);
+        $this->notifyAdmin('Accommodation (Hotel/Apartment Booking)', $data);
         return response()->json(['status' => 200, 'msg' => 'Lodging booking request created.']);
     }
 

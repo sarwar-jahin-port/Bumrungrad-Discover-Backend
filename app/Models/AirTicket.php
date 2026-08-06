@@ -12,6 +12,7 @@ class AirTicket extends Model
     protected $fillable = [
         'fullName',
         'whatsapp',
+        'concern',
         'booking_date',
         'country',
         'doc',
