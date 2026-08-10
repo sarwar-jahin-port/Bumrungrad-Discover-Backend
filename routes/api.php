@@ -162,13 +162,15 @@ Route::controller(FreeConsultationController::class)->group(function () {
 
 Route::controller(DoctorController::class)->middleware('auth:sanctum')->group(function () {
     Route::get('personal/appointment/{id}', 'personal_appointment');
-    Route::post('/add/tele/medicine', 'tele_medicines');
-    Route::post('/add/visa/precessing', 'add_visa_processing')->name('get.visa');
-    Route::post('/add/order/medicine', 'order_medicine');
 });
 Route::controller(DoctorController::class)->group(function () {
     // 1-5. specialty, sub specialty, doctors, packages, sub packages:
     // moved to SpecialtyController / DoctorProfileController / PackageController.
+
+    // tele medicine, visa processing, order medicine: public, no login required
+    Route::post('/add/tele/medicine', 'tele_medicines');
+    Route::post('/add/visa/precessing', 'add_visa_processing')->name('get.visa');
+    Route::post('/add/order/medicine', 'order_medicine');
 
     // 6. clinic and centers: moved to CenterController (see below).
     Route::get('/delete/{center}/{id}', 'delete_record');
