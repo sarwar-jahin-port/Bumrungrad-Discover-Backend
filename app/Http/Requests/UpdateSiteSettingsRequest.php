@@ -22,6 +22,10 @@ class UpdateSiteSettingsRequest extends FormRequest
             'footer_facebook_url' => 'nullable|string|max:500',
             'footer_youtube_url' => 'nullable|string|max:500',
             'footer_whatsapp_url' => 'nullable|string|max:500',
+            'footer_instagram_url' => 'nullable|string|max:500',
+            'footer_linkedin_url' => 'nullable|string|max:500',
+            'footer_telegram_url' => 'nullable|string|max:500',
+            'footer_email' => 'nullable|string|max:255',
         ];
     }
 }
